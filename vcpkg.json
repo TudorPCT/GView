@@ -64,8 +64,12 @@
       "platform": "windows | linux | osx"
     },
 	{
-			"name": "libjpeg-turbo",
-			"platform": "windows | linux | osx"
+        "name": "libjpeg-turbo",
+        "platform": "windows | linux | osx"
+	},
+	{
+		"name": "giflib",
+		"platform": "windows | linux | osx"
 	}
   ],
   "vcpkg-configuration": {
