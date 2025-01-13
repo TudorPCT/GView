@@ -1,4 +1,6 @@
 #include "ImageViewer.hpp"
+#include <thread>
+#include <chrono>
 
 using namespace GView::View::ImageViewer;
 using namespace GView::View::ImageViewer::Commands;
@@ -76,6 +78,9 @@ bool Instance::OnUpdateCommandBar(AppCUI::Application::CommandBar& commandBar)
         //prev/next image
         commandBar.SetCommand(NextImage.Key, NextImage.Caption, NextImage.CommandId);
         commandBar.SetCommand(PrevImage.Key, PrevImage.Caption, PrevImage.CommandId);
+        commandBar.SetCommand(Animate.Key, Animate.Caption, Animate.CommandId);
+        if(this->stopSlideshow)
+            commandBar.SetCommand(StopAnimation.Key, StopAnimation.Caption, StopAnimation.CommandId);
     }
     return false;
 }
@@ -96,6 +101,29 @@ bool Instance::OnKeyEvent(AppCUI::Input::Key keyCode, char16 characterCode)
             this->currentImageIndex++;
             LoadImage();
         }
+        return true;
+    case Key::F6:
+
+        if (!this->stopSlideshow)
+            return false;
+
+        this->stopSlideshow = false;
+
+        std::thread([this]() {
+            for (uint32 idx = 0; idx < this->settings->imgList.size() && !this->stopSlideshow; idx++)
+            {
+                this->currentImageIndex = idx;
+//                this->RedrawImage();
+                LoadImage();
+//                this->RecomputeLayout();
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+            this->stopSlideshow = true;
+        }).detach();
+
+        return true;
+    case Key::F7:
+        this->stopSlideshow = true;
         return true;
     }
 
@@ -143,7 +171,30 @@ bool Instance::OnEvent(Reference<Control>, Event eventType, int ID)
             LoadImage();
         }
         return true;
+    case CMD_ID_ANIMATE_IMAGES:
+
+        if (!this->stopSlideshow)
+            return false;
+
+        this->stopSlideshow = false;
+
+        std::thread([this]() {
+            for (uint32 idx = 0; idx < this->settings->imgList.size() && !this->stopSlideshow ; idx++)
+            {
+                this->currentImageIndex = idx;
+//                this->RedrawImage();
+                LoadImage();
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+            this->stopSlideshow = true;
+        }).detach();
+
+        return true;
+    case CMD_ID_STOP_ANIMATE_IMAGES:
+        this->stopSlideshow = true;
+        return true;
     }
+
     return false;
 }
 bool Instance::GoTo(uint64 offset)
@@ -211,7 +262,9 @@ enum class PropertyID : uint32
     CurrentImageIndex,
     CurrentImageSize,
     ZoomIn,
-    ZoomOut
+    ZoomOut,
+    Animate,
+    StopAnimation
 };
 #define BT(t) static_cast<uint32>(t)
 
@@ -236,6 +289,12 @@ bool Instance::GetPropertyValue(uint32 id, PropertyValue& value)
         return true;
     case PropertyID::ZoomOut:
         value = ZoomOut.Key;
+        return true;
+    case PropertyID::Animate:
+        value = Animate.Key;
+        return true;
+    case PropertyID::StopAnimation:
+        value = StopAnimation.Key;
         return true;
     }
     return false;
@@ -262,6 +321,12 @@ bool Instance::SetPropertyValue(uint32 id, const PropertyValue& value, String& e
         return true;
     case PropertyID::ZoomOut:
         ZoomOut.Key = std::get<Key>(value);
+        return true;
+    case PropertyID::Animate:
+        Animate.Key = std::get<Key>(value);
+        return true;
+    case PropertyID::StopAnimation:
+        StopAnimation.Key = std::get<Key>(value);
         return true;
     }
     error.SetFormat("Unknown internat ID: %u", id);
@@ -290,6 +355,8 @@ const vector<Property> Instance::GetPropertiesList()
         { BT(PropertyID::CurrentImageSize), "Current Image", "Size", PropertyType::Size },
         { BT(PropertyID::ZoomIn), "Shortcuts", "Key for ZoomIn", PropertyType::Key },
         { BT(PropertyID::ZoomOut), "Shortcuts", "Key for ZoomOut", PropertyType::Key },
+        { BT(PropertyID::Animate), "Shortcuts", "Animate", PropertyType::Key },
+        { BT(PropertyID::StopAnimation), "Shortcuts", "Stop Animation", PropertyType::Key },
 
     };
 }

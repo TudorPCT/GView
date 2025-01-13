@@ -18,13 +18,17 @@ namespace View
             constexpr int32 CMD_ID_ZOOMOUT    = 0xBF01;
             constexpr int32 CMD_ID_NEXT_IMAGE = 0xBF02;
             constexpr int32 CMD_ID_PREV_IMAGE = 0xBF03;
+            constexpr int32 CMD_ID_ANIMATE_IMAGES = 0xBF04;
+            constexpr int32 CMD_ID_STOP_ANIMATE_IMAGES = 0xBF05;
 
             static KeyboardControl ZoomIn    = { Key::F3, "ZoomIn", "Zoom in the picture", CMD_ID_ZOOMIN };
             static KeyboardControl ZoomOut   = { Key::F2, "ZoomOut", "Zoom out the picture", CMD_ID_ZOOMOUT };
             static KeyboardControl NextImage = { Key::PageUp, "PrevImage", "Go to the previous image", CMD_ID_NEXT_IMAGE };
             static KeyboardControl PrevImage = { Key::PageDown, "NextImage", "Go to the next image", CMD_ID_PREV_IMAGE };
+            static KeyboardControl Animate = { Key::F6, "Slide show", "Render all images", CMD_ID_ANIMATE_IMAGES };
+            static KeyboardControl StopAnimation = { Key::F7, "Stop Slide Show", "Stop rendering all images", CMD_ID_STOP_ANIMATE_IMAGES };
 
-            static std::array ImageViewCommands = { &ZoomIn, &ZoomOut, &NextImage, &PrevImage };
+            static std::array ImageViewCommands = { &ZoomIn, &ZoomOut, &NextImage, &PrevImage, &Animate, &StopAnimation };
         }
 
         struct ImageInfo
@@ -55,6 +59,7 @@ namespace View
             Reference<GView::Object> obj;
             uint32 currentImageIndex;
             ImageScaleMethod scale;
+            bool stopSlideshow = true;
 
             static Config config;
 
