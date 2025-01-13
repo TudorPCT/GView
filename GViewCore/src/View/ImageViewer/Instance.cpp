@@ -109,13 +109,12 @@ bool Instance::OnKeyEvent(AppCUI::Input::Key keyCode, char16 characterCode)
 
         this->stopSlideshow = false;
 
+        this->currentImageIndex = 0;
+
         std::thread([this]() {
             for (uint32 idx = 0; idx < this->settings->imgList.size() && !this->stopSlideshow; idx++)
             {
-                this->currentImageIndex = idx;
-//                this->RedrawImage();
-                LoadImage();
-//                this->RecomputeLayout();
+                this->RaiseEvent(Event::Command, CMD_ID_NEXT_IMAGE);
                 std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
             this->stopSlideshow = true;
@@ -178,12 +177,13 @@ bool Instance::OnEvent(Reference<Control>, Event eventType, int ID)
 
         this->stopSlideshow = false;
 
+        this->currentImageIndex = 0;
+
         std::thread([this]() {
+
             for (uint32 idx = 0; idx < this->settings->imgList.size() && !this->stopSlideshow ; idx++)
             {
-                this->currentImageIndex = idx;
-//                this->RedrawImage();
-                LoadImage();
+                this->RaiseEvent(Event::Command, CMD_ID_NEXT_IMAGE);
                 std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
             this->stopSlideshow = true;
